@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievement - AI 求职助手 v1.0</title>
+    <style>
+        /* ============================================================
+           全局样式
+           ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* ============================================================
+           头部导航
+           ============================================================ */
+        .header {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header h1 { font-size: 20px; font-weight: 600; }
+        .header .subtitle { font-size: 13px; opacity: 0.85; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .server-status {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12px; background: rgba(255,255,255,0.15);
+            padding: 4px 12px; border-radius: 20px;
+        }
+        .server-status .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #66bb6a; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+        }
+
+        /* ============================================================
+           主容器
+           ============================================================ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 24px;
+        }
+
+        /* ============================================================
+           侧边栏
+           ============================================================ */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            height: fit-content;
+            position: sticky;
+            top: 88px;
+        }
+        .sidebar h2 {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+            padding: 4px 12px 8px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .nav-item {
+            padding: 10px 14px;
+            margin: 2px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item:hover { background: #f0f7ff; color: #1a73e8; }
+        .nav-item.active { background: #e8f0fe; color: #1a73e8; font-weight: 500; }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+        /* ============================================================
+           主内容区
+           ============================================================ */
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            min-height: 500px;
+        }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-header { margin-bottom: 24px; }
+        .section-header h2 { font-size: 20px; color: #1a73e8; margin-bottom: 4px; }
+        .section-header p { font-size: 14px; color: #888; }
+
+        /* ============================================================
+           表单
+           ============================================================ */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 14px; font-weight: 500;
+            color: #555; margin-bottom: 6px;
+        }
+        .form-group textarea,
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+            background: #fafafa;
+        }
+        .form-group textarea:focus,
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+            background: #fff;
+        }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* ============================================================
+           按钮
+           ============================================================ */
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+        }
+        .btn-primary:hover { background: #1557b0; }
+        .btn-primary:disabled { background: #93b8f0; cursor: not-allowed; }
+        .btn-secondary {
+            background: #f0f2f5;
+            color: #555;
+            border: 1px solid #e0e0e0;
+        }
+        .btn-secondary:hover { background: #e4e6eb; }
+        .btn-danger {
+            background: #fce8e6;
+            color: #d93025;
+            border: 1px solid #f5c6c2;
+        }
+        .btn-danger:hover { background: #f8d7da; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           结果展示
+           ============================================================ */
+        .result-box {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e8eaed;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+        }
+        .result-box.show { display: block; }
+        .result-box.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #888;
+            min-height: 80px;
+        }
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid #ddd;
+            border-top-color: #1a73e8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ============================================================
+           状态标签
+           ============================================================ */
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-已投递 { background: #e8f0fe; color: #1a73e8; }
+        .badge-已查看 { background: #fef7e0; color: #e37400; }
+        .badge-面试中 { background: #e6f4ea; color: #1e8e3e; }
+        .badge-已拒绝 { background: #fce8e6; color: #d93025; }
+        .badge-已录用 { background: #e6f4ea; color: #1e8e3e; }
+
+        /* ============================================================
+           统计卡片
+           ============================================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            border: 1px solid #e8eaed;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-number { font-size: 24px; font-weight: 700; color: #1a73e8; }
+        .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
+
+        /* ============================================================
+           表格
+           ============================================================ */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid #e8eaed;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        thead { background: #f8f9fa; }
+        th {
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            font-size: 12px;
+            border-bottom: 1px solid #e8eaed;
+            white-space: nowrap;
+        }
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        tr:hover td { background: #f8f9fa; }
+        tr:last-child td { border-bottom: none; }
+
+        /* ============================================================
+           筛选按钮
+           ============================================================ */
+        .filter-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .filter-btn {
+            padding: 5px 12px;
+            border-radius: 16px;
+            border: 1px solid #ddd;
+            background: transparent;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .filter-btn:hover { border-color: #1a73e8; color: #1a73e8; }
+        .filter-btn.active { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+
+        /* ============================================================
+           文件上传
+           ============================================================ */
+        .file-upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+        .file-upload-area:hover { border-color: #1a73e8; background: #f0f7ff; }
+        .file-upload-area .icon { font-size: 32px; margin-bottom: 6px; }
+        .file-upload-area p { color: #888; font-size: 14px; }
+        .file-upload-area .hint { color: #aaa; font-size: 12px; margin-top: 4px; }
+        .file-upload-area input[type="file"] { display: none; }
+
+        /* ============================================================
+           空状态
+           ============================================================ */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+        }
+        .empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; }
+
+        /* ============================================================
+           Toast 通知
+           ============================================================ */
+        .toast-container {
+            position: fixed;
+            top: 72px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #fff;
+            animation: slideIn 0.3s ease;
+            max-width: 340px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .toast-success { background: #2e7d32; }
+        .toast-error { background: #c62828; }
+        .toast-info { background: #1565c0; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ============================================================
+           关于
+           ============================================================ */
+        .about-section { line-height: 1.8; color: #555; }
+        .about-section ul { margin: 12px 0 0 20px; }
+        .about-section li { margin-bottom: 4px; }
+
+        /* ============================================================
+           响应式
+           ============================================================ */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 16px;
+            }
+            .sidebar {
+                position: static;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                padding: 8px;
+            }
+            .sidebar h2 { display: none; }
+            .nav-item { flex: 1; min-width: 70px; justify-content: center; font-size: 12px; padding: 8px; }
+            .form-row, .form-row-3 { grid-template-columns: 1fr; }
+            .header { padding: 12px 16px; flex-direction: column; gap: 8px; }
+            .header h1 { font-size: 17px; }
+            .main-content { padding: 20px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <header class="header">
+        <div class="header-left">
+            <h1>🚀 Achievement</h1>
+            <span class="subtitle">AI 求职助手</span>
+        </div>
+        <div class="header-right">
+            <div class="server-status">
+                <span class="dot"></span>
+                <span>服务运行中</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <h2>功能菜单</h2>
+            <div class="nav-item active" data-section="enhance"><span class="icon">✏️</span>简历优化</div>
+            <div class="nav-item" data-section="match"><span class="icon">🎯</span>岗位匹配</div>
+            <div class="nav-item" data-section="crawl"><span class="icon">🕷️</span>职位爬虫</div>
+            <div class="nav-item" data-section="rag"><span class="icon">📄</span>简历浓缩</div>
+            <div class="nav-item" data-section="tracker"><span class="icon">📋</span>投递跟踪</div>
+            <div class="nav-item" data-section="parser"><span class="icon">📎</span>文件解析</div>
+            <div class="nav-item" data-section="about"><span class="icon">ℹ️</span>关于</div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+
+            <!-- ============================================================
+            简历优化
+            ============================================================ -->
+            <div class="section active" id="section-enhance">
+                <div class="section-header">
+                    <h2>✏️ AI 简历优化</h2>
+                    <p>根据目标岗位描述（JD）优化简历，生成可直接投递的专业简历</p>
+                </div>
+
+                <div class="form-group">
+                    <label>原始简历</label>
+                    <textarea id="enhance-resume" placeholder="请粘贴您的简历文本..." rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>目标岗位描述（JD）</label>
+                    <textarea id="enhance-jd" placeholder="请粘贴目标岗位的招聘要求..." rows="5"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>额外要求（可选）</label>
+                        <input id="enhance-extra" placeholder="如：突出项目管理经验">
+                    </div>
+                    <div class="form-group">
+                        <label>简历模板（可选）</label>
+                        <select id="enhance-template">
+                            <option value="">标准优化（不使用模板）</option>
+                            <option value="standard">📋 标准模板</option>
+                            <option value="technical">💻 技术岗位模板</option>
+                            <option value="concise">📄 简洁模板</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="enhanceResume()">🚀 开始优化</button>
+                    <button class="btn btn-secondary" onclick="listTemplates()">📋 查看模板</button>
+                </div>
+                <div class="result-box" id="enhance-result"></div>
+            </div>
+
+            <!-- ============================================================
+            岗位匹配
+            ============================================================ -->
+            <div class="section" id="section-match">
+                <div class="section-header">
+                    <h2>🎯 AI 岗位匹配</h2>
+                    <p>根据您的简历和岗位列表，由 AI 猎头顾问智能匹配最合适的岗位</p>
+                </div>
+
+                <div class="form-group">
+                    <label>您的简历</label>
+                    <textarea id="match-resume" placeholder="请粘贴您的简历文本..." rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>岗位列表</label>
+                    <textarea id="match-jobs" placeholder="请粘贴岗位列表（可从爬虫获取或手动输入）..." rows="8"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="matchJobs()">🎯 开始匹配</button>
+                <div class="result-box" id="match-result"></div>
+            </div>
+
+            <!-- ============================================================
+            职位爬虫
+            ============================================================ -->
+            <div class="section" id="section-crawl">
+                <div class="section-header">
+                    <h2>🕷️ 职位爬虫</h2>
+                    <p>从前程无忧（51job）实时爬取职位数据</p>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>关键词</label>
+                        <input id="crawl-keyword" value="AI应用开发" placeholder="如：Python后端">
+                    </div>
+                    <div class="form-group">
+                        <label>城市</label>
+                        <select id="crawl-city">
+                            <option>上海</option><option>北京</option><option>广州</option>
+                            <option>深圳</option><option>杭州</option><option>成都</option>
+                            <option>南京</option><option>武汉</option><option>西安</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>抓取页数</label>
+                        <select id="crawl-pages">
+                            <option value="1">1 页</option>
+                            <option value="2" selected>2 页</option>
+                            <option value="3">3 页</option>
+                            <option value="4">4 页</option>
+                            <option value="5">5 页</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="crawlJobs()">🕷️ 开始爬取</button>
+                    <button class="btn btn-secondary" onclick="copyCrawlToMatch()">📋 复制到岗位匹配</button>
+                </div>
+                <div class="result-box" id="crawl-result"></div>
+            </div>
+
+            <!-- ============================================================
+            RAG 简历浓缩
+            ============================================================ -->
+            <div class="section" id="section-rag">
+                <div class="section-header">
+                    <h2>📄 RAG 简历浓缩</h2>
+                    <p>将简历导入向量数据库，通过 RAG 技术快速生成浓缩版简历摘要</p>
+                </div>
+
+                <div class="form-group">
+                    <label>简历文本</label>
+                    <textarea id="rag-resume" placeholder="请粘贴您的简历全文..." rows="5"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>简历标识 (resume_id)</label>
+                        <input id="rag-id" placeholder="如: zhangsan，留空自动生成">
+                    </div>
+                    <div class="form-group">
+                        <label>姓名（可选）</label>
+                        <input id="rag-name" placeholder="用于元数据标记">
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="importResume()">📥 导入简历</button>
+                    <button class="btn btn-secondary" onclick="summarizeResume()">📄 浓缩简历</button>
+                    <button class="btn btn-secondary" onclick="listResumes()">📋 查看已导入</button>
+                </div>
+                <div class="result-box" id="rag-result"></div>
+            </div>
+
+            <!-- ============================================================
+            投递跟踪
+            ============================================================ -->
+            <div class="section" id="section-tracker">
+                <div class="section-header">
+                    <h2>📋 投递跟踪</h2>
+                    <p>记录和管理您的求职投递历史</p>
+                </div>
+
+                <!-- 统计 -->
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card"><div class="stat-number" id="stat-total">-</div><div class="stat-label">总投递</div></div>
+                    <div class="stat-card"><div class="stat-number" id="stat-week">-</div><div class="stat-label">近7天</div></div>
+                    <div class="stat-card"><div class="stat-number" id="stat-interview">-</div><div class="stat-label">面试中</div></div>
+                    <div class="stat-card"><div class="stat-number" id="stat-offer">-</div><div class="stat-label">已录用</div></div>
+                </div>
+
+                <!-- 新增 -->
+                <div style="background:#f8f9fa;padding:16px;border-radius:8px;border:1px solid #e8eaed;margin-bottom:20px;">
+                    <h3 style="font-size:15px;margin-bottom:12px;">📝 新增投递记录</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>公司名称 *</label>
+                            <input id="track-company" placeholder="如：字节跳动">
+                        </div>
+                        <div class="form-group">
+                            <label>岗位名称 *</label>
+                            <input id="track-title" placeholder="如：高级后端工程师">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>薪资范围</label>
+                            <input id="track-salary" placeholder="如：30K-50K">
+                        </div>
+                        <div class="form-group">
+                            <label>工作地点</label>
+                            <input id="track-location" placeholder="如：北京">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>备注</label>
+                        <input id="track-notes" placeholder="备注信息（可选）">
+                    </div>
+                    <button class="btn btn-primary" onclick="addApplication()">✅ 记录投递</button>
+                </div>
+
+                <!-- 列表 -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3 style="font-size:15px;">📋 投递记录</h3>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary btn-sm" onclick="loadTrackerData()">🔄 刷新</button>
+                        <button class="btn btn-secondary btn-sm" onclick="getStats()">📊 统计</button>
+                    </div>
+                </div>
+
+                <div class="filter-group" id="tracker-filters">
+                    <button class="filter-btn active" data-status="" onclick="filterTracker(this, '')">全部</button>
+                    <button class="filter-btn" data-status="已投递" onclick="filterTracker(this, '已投递')">📩 已投递</button>
+                    <button class="filter-btn" data-status="已查看" onclick="filterTracker(this, '已查看')">👁️ 已查看</button>
+                    <button class="filter-btn" data-status="面试中" onclick="filterTracker(this, '面试中')">🤝 面试中</button>
+                    <button class="filter-btn" data-status="已拒绝" onclick="filterTracker(this, '已拒绝')">❌ 已拒绝</button>
+                    <button class="filter-btn" data-status="已录用" onclick="filterTracker(this, '已录用')">🎉 已录用</button>
+                </div>
+
+                <div id="tracker-table-container">
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>暂无投递记录</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+            文件解析
+            ============================================================ -->
+            <div class="section" id="section-parser">
+                <div class="section-header">
+                    <h2>📎 简历文件解析</h2>
+                    <p>上传 PDF 或 Word 格式的简历文件，自动提取文本内容</p>
+                </div>
+
+                <div class="file-upload-area" onclick="document.getElementById('file-input').click()">
+                    <div class="icon">📄</div>
+                    <p>点击上传简历文件</p>
+                    <p class="hint">支持 PDF、Word (.docx) 格式</p>
+                    <input type="file" id="file-input" accept=".pdf,.docx" onchange="handleFileSelect(event)">
+                </div>
+                <div id="file-info" style="display:none;margin-top:12px;padding:12px;background:#f8f9fa;border-radius:8px;border:1px solid #e8eaed;">
+                    <p style="font-size:13px;color:#888;">已选择: <span id="file-name" style="color:#333;font-weight:500;"></span></p>
+                    <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="parseUploadedFile()">📄 解析文件</button>
+                </div>
+                <div class="result-box" id="parser-result"></div>
+            </div>
+
+            <!-- ============================================================
+            关于
+            ============================================================ -->
+            <div class="section" id="section-about">
+                <div class="section-header">
+                    <h2>ℹ️ 关于 Achievement</h2>
+                </div>
+                <div class="about-section">
+                    <p><strong>Achievement</strong> 是一个基于 AI 的求职辅助工具，帮助你：</p>
+                    <ul>
+                        <li>✏️ <strong>简历优化</strong> - 根据目标岗位 JD 优化简历，提高面试邀约率</li>
+                        <li>🎯 <strong>岗位匹配</strong> - AI 猎头顾问智能匹配最适合你的岗位</li>
+                        <li>🕷️ <strong>职位爬虫</strong> - 实时爬取 51job 职位数据</li>
+                        <li>📄 <strong>简历浓缩</strong> - 使用 RAG 技术快速生成简历摘要</li>
+                        <li>📋 <strong>投递跟踪</strong> - 记录和管理求职投递历史</li>
+                        <li>📎 <strong>文件解析</strong> - 解析 PDF/Word 简历文件</li>
+                    </ul>
+                    <p style="margin-top:16px;">技术栈：Python MCP · DeepSeek API · Qdrant 向量数据库 · SQLite</p>
+                    <p style="margin-top:8px;color:#999;font-size:13px;">
+                        版本：v1.0 | 
+                        服务状态：<span style="color:#1e8e3e;">● 运行中</span>
+                    </p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // ============================================================
+        //  MCP Client (SSE 模式)
+        // ============================================================
+        const MCP_SERVER_URL = 'http://127.0.0.1:8000';
+        let mcpSessionId = null;
+        let mcpPending = {};
+        let mcpMsgId = 0;
+
+        async function initMcpSession() {
+            return new Promise((resolve, reject) => {
+                const es = new EventSource(`${MCP_SERVER_URL}/sse`);
+
+                // 监听命名 endpoint 事件（SSE 流中发送 event: endpoint）
+                es.addEventListener('endpoint', (event) => {
+                    const data = (event.data || '').trim();
+                    if (!data) return;
+
+                    // 提取 session_id
+                    const sessionMatch = data.match(/\/messages\/\?session_id=([a-f0-9]+)/);
+                    if (sessionMatch) {
+                        mcpSessionId = sessionMatch[1];
+                        console.log('MCP Session ID:', mcpSessionId);
+
+                        // MCP 协议要求：收到 session_id 后必须先发送 initialize 请求完成握手
+                        doInitialize().then(resolve).catch(reject);
+                    }
+                });
+
+                // 监听命名 message 事件（工具调用响应有 event: message 字段）
+                es.addEventListener('message', (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        if (msg.id && mcpPending[msg.id]) {
+                            mcpPending[msg.id](msg);
+                            delete mcpPending[msg.id];
+                        }
+                    } catch (e) {
+                        // ignore non-JSON messages
+                    }
+                });
+
+                es.onerror = () => {
+                    if (!mcpSessionId) {
+                        reject(new Error('无法连接到 MCP 服务器'));
+                    }
+                };
+                // 超时处理
+                setTimeout(() => {
+                    if (!mcpSessionId) reject(new Error('MCP 会话建立超时'));
+                }, 10000);
+            });
+        }
+
+        // MCP 初始化握手：发送 initialize 请求，等待服务器返回 InitializeResult
+        async function doInitialize() {
+            const id = ++mcpMsgId;
+            return new Promise((resolve, reject) => {
+                mcpPending[id] = (msg) => {
+                    if (msg.error) {
+                        reject(new Error(msg.error.message || '初始化失败'));
+                    } else {
+                        console.log('MCP 初始化成功:', msg.result);
+                        resolve();
+                    }
+                };
+                fetch(`${MCP_SERVER_URL}/messages/?session_id=${mcpSessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: id,
+                        method: 'initialize',
+                        params: {
+                            protocolVersion: '2024-11-05',
+                            capabilities: {},
+                            clientInfo: { name: 'achievement-web-client', version: '1.0.0' }
+                        }
+                    })
+                }).catch(reject);
+                setTimeout(() => {
+                    if (mcpPending[id]) {
+                        delete mcpPending[id];
+                        reject(new Error('初始化超时'));
+                    }
+                }, 10000);
+            });
+        }
+
+        async function callTool(toolName, args) {
+            if (!mcpSessionId) {
+                await initMcpSession();
+            }
+            const id = ++mcpMsgId;
+            return new Promise((resolve, reject) => {
+                mcpPending[id] = (msg) => {
+                    if (msg.error) {
+                        reject(new Error(msg.error.message || '工具调用失败'));
+                    } else {
+                        const content = msg.result?.content;
+                        if (content && content.length > 0) {
+                            resolve(content.map(c => c.text).join('\n'));
+                        } else {
+                            resolve(JSON.stringify(msg.result));
+                        }
+                    }
+                };
+                fetch(`${MCP_SERVER_URL}/messages/?session_id=${mcpSessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: id,
+                        method: 'tools/call',
+                        params: { name: toolName, arguments: args }
+                    })
+                }).catch(reject);
+                // 120秒超时（爬虫首次需要下载 ChromeDriver，可能耗时较长）
+                setTimeout(() => {
+                    if (mcpPending[id]) {
+                        delete mcpPending[id];
+                        reject(new Error('工具调用超时'));
+                    }
+                }, 120000);
+            });
+        }
+
+        // ============================================================
+        //  Toast 通知
+        // ============================================================
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // ============================================================
+        //  导航切换
+        // ============================================================
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('section-' + this.dataset.section).classList.add('active');
+            });
+        });
+
+        // ============================================================
+        //  显示结果
+        // ============================================================
+        function showResult(elementId, content, isLoading = false) {
+            const el = document.getElementById(elementId);
+            el.classList.add('show');
+            if (isLoading) {
+                el.className = 'result-box show loading';
+                el.innerHTML = '<div class="spinner"></div> 处理中，请稍候...';
+            } else {
+                el.className = 'result-box show';
+                el.textContent = content;
+            }
+        }
+
+        // ============================================================
+        //  简历优化
+        // ============================================================
+        async function enhanceResume() {
+            const resume = document.getElementById('enhance-resume').value.trim();
+            const jd = document.getElementById('enhance-jd').value.trim();
+            const extra = document.getElementById('enhance-extra').value.trim();
+            const template = document.getElementById('enhance-template').value;
+
+            if (!resume || !jd) {
+                showResult('enhance-result', '⚠️ 请填写简历和岗位描述');
+                return;
+            }
+
+            showResult('enhance-result', '', true);
+            try {
+                let result;
+                if (template) {
+                    result = await callTool('enhance_resume_by_template', {
+                        resume_text: resume,
+                        template: template,
+                        target_position: jd
+                    });
+                } else {
+                    result = await callTool('enhance_resume_by_jd', {
+                        resume_text: resume,
+                        jd_text: jd
+                    });
+                }
+                showResult('enhance-result', result);
+                showToast('简历优化完成！', 'success');
+            } catch (e) {
+                showResult('enhance-result', '❌ 优化失败：' + e.message);
+                showToast('优化失败：' + e.message, 'error');
+            }
+        }
+
+        async function listTemplates() {
+            showResult('enhance-result', '', true);
+            try {
+                const result = await callTool('enhance_resume_by_template', {
+                    resume_text: '示例简历文本',
+                    template: 'standard',
+                    target_position: ''
+                });
+                showResult('enhance-result', '可用模板：standard（标准）、technical（技术）、concise（简洁）\n\n提示：在简历优化面板选择模板后点击优化即可使用。');
+            } catch (e) {
+                showResult('enhance-result', '❌ 查询失败：' + e.message);
+            }
+        }
+
+        // ============================================================
+        //  岗位匹配
+        // ============================================================
+        async function matchJobs() {
+            const resume = document.getElementById('match-resume').value.trim();
+            const jobs = document.getElementById('match-jobs').value.trim();
+            if (!resume || !jobs) { showResult('match-result', '⚠️ 请填写简历和岗位列表'); return; }
+            showResult('match-result', '', true);
+            try {
+                const result = await callTool('get_job_by_resume', { jobs: jobs, resume: resume });
+                showResult('match-result', result);
+                showToast('岗位匹配完成！', 'success');
+            } catch (e) {
+                showResult('match-result', '❌ 匹配失败：' + e.message);
+                showToast('匹配失败', 'error');
+            }
+        }
+
+        // ============================================================
+        //  职位爬虫
+        // ============================================================
+        async function crawlJobs() {
+            const keyword = document.getElementById('crawl-keyword').value.trim();
+            const city = document.getElementById('crawl-city').value;
+            const pages = parseInt(document.getElementById('crawl-pages').value);
+            if (!keyword) { showResult('crawl-result', '⚠️ 请填写关键词'); return; }
+            showResult('crawl-result', '', true);
+            try {
+                const result = await callTool('crawl_jobs', { keyword: keyword, city: city, max_pages: pages });
+                showResult('crawl-result', result);
+                showToast(`爬取完成！共获取 ${city} 的 ${keyword} 职位`, 'success');
+            } catch (e) {
+                showResult('crawl-result', '❌ 爬取失败：' + e.message);
+                showToast('爬取失败', 'error');
+            }
+        }
+
+        function copyCrawlToMatch() {
+            const crawlText = document.getElementById('crawl-result').textContent;
+            if (!crawlText || crawlText.includes('处理中')) {
+                showToast('请先爬取职位数据', 'error');
+                return;
+            }
+            document.getElementById('match-jobs').value = crawlText;
+            showToast('已复制到岗位匹配输入框', 'info');
+        }
+
+        // ============================================================
+        //  RAG 简历浓缩
+        // ============================================================
+        async function importResume() {
+            const resume = document.getElementById('rag-resume').value.trim();
+            const id = document.getElementById('rag-id').value.trim() || null;
+            const name = document.getElementById('rag-name').value.trim();
+            if (!resume) { showResult('rag-result', '⚠️ 请填写简历文本'); return; }
+            showResult('rag-result', '', true);
+            try {
+                const result = await callTool('import_resume_to_vector_db', {
+                    resume_text: resume, resume_id: id, name: name
+                });
+                showResult('rag-result', result);
+                showToast('简历导入成功！', 'success');
+            } catch (e) {
+                showResult('rag-result', '❌ 导入失败：' + e.message);
+                showToast('导入失败', 'error');
+            }
+        }
+
+        async function summarizeResume() {
+            const id = document.getElementById('rag-id').value.trim();
+            if (!id) { showResult('rag-result', '⚠️ 请填写简历标识 (resume_id)'); return; }
+            showResult('rag-result', '', true);
+            try {
+                const result = await callTool('rag_summarize_resume', {
+                    resume_id: id, max_length: 500
+                });
+                showResult('rag-result', result);
+                showToast('简历浓缩完成！', 'success');
+            } catch (e) {
+                showResult('rag-result', '❌ 浓缩失败：' + e.message);
+            }
+        }
+
+        async function listResumes() {
+            showResult('rag-result', '', true);
+            try {
+                const result = await callTool('search_similar_resumes', {
+                    query: '简历', top_k: 10
+                });
+                showResult('rag-result', result);
+            } catch (e) {
+                showResult('rag-result', '❌ 查询失败：' + e.message);
+            }
+        }
+
+        // ============================================================
+        //  投递跟踪
+        // ============================================================
+        let trackerStatusFilter = '';
+
+        async function addApplication() {
+            const company = document.getElementById('track-company').value.trim();
+            const title = document.getElementById('track-title').value.trim();
+            const salary = document.getElementById('track-salary').value.trim();
+            const location = document.getElementById('track-location').value.trim();
+            const notes = document.getElementById('track-notes').value.trim();
+            if (!company || !title) { showResult('tracker-result', '⚠️ 请填写公司名称和岗位名称'); return; }
+            showResult('tracker-result', '', true);
+            try {
+                const result = await callTool('add_job_record', {
+                    company: company, position: title,
+                    salary: salary, location: location, note: notes
+                });
+                showResult('tracker-result', result);
+                document.getElementById('track-company').value = '';
+                document.getElementById('track-title').value = '';
+                document.getElementById('track-salary').value = '';
+                document.getElementById('track-location').value = '';
+                document.getElementById('track-notes').value = '';
+                showToast('投递记录已添加！', 'success');
+                loadTrackerData();
+            } catch (e) {
+                showResult('tracker-result', '❌ 记录失败：' + e.message);
+            }
+        }
+
+        function filterTracker(btn, status) {
+            document.querySelectorAll('#tracker-filters .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            trackerStatusFilter = status;
+            loadTrackerData();
+        }
+
+        async function loadTrackerData() {
+            const container = document.getElementById('tracker-table-container');
+            container.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto;"></div><p style="margin-top:12px;">加载中...</p></div>';
+            try {
+                const apps = await callTool('list_job_records', {
+                    status: trackerStatusFilter, page: 1, page_size: 50
+                });
+                renderTrackerTable(apps);
+            } catch (e) {
+                container.innerHTML = `<div class="empty-state"><p>❌ 加载失败：${e.message}</p></div>`;
+            }
+        }
+
+        function renderTrackerTable(data) {
+            const container = document.getElementById('tracker-table-container');
+            // 尝试解析 JSON
+            let apps = [];
+            try {
+                // 如果返回的是纯文本，尝试提取结构化数据
+                const lines = data.split('\n').filter(l => l.trim());
+                if (lines.length < 3) {
+                    container.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>暂无投递记录</p></div>`;
+                    return;
+                }
+                // 显示为格式化文本
+                container.innerHTML = `<div class="result-box show" style="margin-top:0;">${data}</div>`;
+            } catch (e) {
+                container.innerHTML = `<div class="result-box show" style="margin-top:0;">${data}</div>`;
+            }
+        }
+
+        async function getStats() {
+            try {
+                const result = await callTool('get_job_stats', {});
+                // 解析统计结果更新卡片
+                const lines = result.split('\n');
+                let total = '0', week = '0', interview = '0', offer = '0';
+                lines.forEach(line => {
+                    if (line.includes('总投递数')) total = line.split(':')[1]?.trim() || '0';
+                    if (line.includes('近7天')) week = line.split(':')[1]?.trim() || '0';
+                    if (line.includes('面试中')) interview = line.split(':')[1]?.trim() || '0';
+                    if (line.includes('已录用')) offer = line.split(':')[1]?.trim() || '0';
+                });
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-week').textContent = week;
+                document.getElementById('stat-interview').textContent = interview;
+                document.getElementById('stat-offer').textContent = offer;
+                showToast('统计数据已更新', 'info');
+            } catch (e) {
+                showToast('获取统计失败', 'error');
+            }
+        }
+
+        // ============================================================
+        //  文件解析
+        // ============================================================
+        let selectedFile = null;
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            selectedFile = file;
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('file-info').style.display = 'block';
+        }
+
+        async function parseUploadedFile() {
+            if (!selectedFile) { showResult('parser-result', '⚠️ 请先选择文件'); return; }
+            showResult('parser-result', '', true);
+            try {
+                // 通过 MCP 工具解析 - 需要先将文件路径传给后端
+                // 由于浏览器无法直接获取完整路径，提示用户手动输入路径
+                showResult('parser-result', '⚠️ 浏览器无法直接获取文件完整路径。\n\n请手动输入文件路径到下方输入框，或使用「简历优化」功能粘贴文本。\n\n或者您可以在服务器端直接调用 parse_resume_file 工具。');
+            } catch (e) {
+                showResult('parser-result', '❌ 解析失败：' + e.message);
+            }
+        }
+
+        // ============================================================
+        //  页面加载时自动加载投递数据
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟加载投递数据
+            setTimeout(() => {
+                getStats();
+                loadTrackerData();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
