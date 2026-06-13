@@ -37,7 +37,9 @@ class JobSearchMCPServer:
         if transport == "stdio":
             self.mcp.run()
         else:
-            self.mcp.run(transport="streamable-http")
+            import uvicorn
+            app = self.mcp.streamable_http_app()
+            uvicorn.run(app, host="0.0.0.0", port=8000)
 
 def main():
     transport = sys.argv[1] if len(sys.argv) > 1 else "streamable-http"

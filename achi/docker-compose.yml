@@ -16,6 +16,8 @@ services:
       - "8000:8000"
     env_file:
       - .env          # API keys 放这里，不写进镜像
+    environment:
+      - HOST=0.0.0.0
     depends_on:
       - qdrant
     restart: unless-stopped
